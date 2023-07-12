@@ -1,0 +1,111 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Clinic {
+  id          String        @id @default(uuid())
+  nome        String
+  cnpj        BigInt
+  email       String        @unique
+  password    String
+  endereco    String
+  cidade      String
+  uf          String
+  Breed       Breed[]
+  Animal      Animal[]
+  AnimalType  AnimalType[]
+  WalletType  WalletType[]
+  Responsible Responsible[]
+  Vet         Vet[]
+  Vaccine     Vaccine[]
+}
+
+model Animal {
+  id             String @id @default(uuid())
+  name           String
+  height         Float
+  weight         Float
+  animal_type_id String
+  breed_id       String
+  responsible_id String
+  clinic_id      String
+
+  clinic      Clinic      @relation(fields: [clinic_id], references: [id])
+  responsible Responsible @relation(fields: [responsible_id], references: [id])
+  breed       Breed       @relation(fields: [breed_id], references: [id])
+  type        AnimalType  @relation(fields: [animal_type_id], references: [id])
+
+  Vaccine Vaccine[]
+}
+
+model Breed {
+  id          String @id @default(uuid())
+  description String
+  clinic_id   String
+
+  clinic Clinic @relation(fields: [clinic_id], references: [id])
+
+  Animal Animal[]
+}
+
+model AnimalType {
+  id          String @id @default(uuid())
+  description String
+  clinic_id   String
+
+  clinic Clinic @relation(fields: [clinic_id], references: [id])
+
+  Animal Animal[]
+}
+
+model WalletType {
+  id          String @id @default(uuid())
+  description String
+  clinic_id   String
+
+  clinic Clinic @relation(fields: [clinic_id], references: [id])
+}
+
+model Responsible {
+  id         String   @id @default(uuid())
+  name       String
+  cpf        String
+  phone      BigInt
+  email      String   @unique
+  birth_date DateTime
+  clinic_id  String
+
+  clinic Clinic @relation(fields: [clinic_id], references: [id])
+
+  Animal Animal[]
+}
+
+model Vet {
+  id         String   @id @default(uuid())
+  name       String
+  cpf        String
+  phone      BigInt
+  email      String   @unique
+  birth_date DateTime
+  clinic_id  String
+
+  clinic Clinic @relation(fields: [clinic_id], references: [id])
+}
+
+model Vaccine {
+  id        String   @id @default(uuid())
+  name      String
+  animal_id String
+  validate  DateTime
+  ml        Float
+  clinic_id String
+
+  clinic Clinic @relation(fields: [clinic_id], references: [id])
+
+  animal Animal @relation(fields: [animal_id], references: [id])
+}
