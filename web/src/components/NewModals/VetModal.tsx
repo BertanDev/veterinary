@@ -1,5 +1,5 @@
 import { X, AngryIcon, User } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Input } from '../Input'
 import { api } from '@/lib/axios'
@@ -7,15 +7,76 @@ import { toast } from 'react-hot-toast'
 import InputMask from 'react-input-mask'
 
 interface VetModalProps {
+  isEdit?: boolean
+  editId?: string
+
   closeModal: () => void
+  getVets: () => void
 }
 
-export function VetModal({ closeModal }: VetModalProps) {
+export function VetModal({
+  closeModal,
+  getVets,
+  editId,
+  isEdit,
+}: VetModalProps) {
   const [name, setName] = useState('')
   const [cpf, setCpf] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [birthDate, setBirthDate] = useState('')
+
+  useEffect(() => {
+    const fetchVet = async () => {
+      const response = await api.get('/vet', {
+        params: {
+          editId,
+        },
+      })
+
+      console.log(response)
+      return response.data
+    }
+
+    if (isEdit) {
+      const getData = async () => {
+        const data = await fetchVet()
+
+        const date = new Date(data.vet.birth_date)
+        const dia = date.getDate().toString().padStart(2, '0')
+        const mes = (date.getMonth() + 1).toString().padStart(2, '0')
+        const ano = date.getFullYear().toString()
+
+        const dataFormatada = `${dia}/${mes}/${ano}`
+
+        setName(data.vet.name)
+        setBirthDate(dataFormatada)
+        setCpf(data.vet.cpf)
+        setEmail(data.vet.email)
+        setPhone(data.vet.phone)
+      }
+
+      getData()
+    }
+  }, [editId, isEdit])
+
+  async function handleEditResponsible() {
+    try {
+      await api.put('/vet', {
+        id: editId,
+        birthDate: birthDate.replace(/\//g, ''),
+        cpf,
+        email,
+        name,
+        phone: String(phone),
+      })
+
+      toast.success('Responsável editado')
+      getVets()
+    } catch (error) {
+      toast.error('Erro no servidor')
+    }
+  }
 
   async function handleAddNewVet() {
     console.log({ name, cpf, birthDate, email, phone })
@@ -30,6 +91,7 @@ export function VetModal({ closeModal }: VetModalProps) {
       })
 
       toast.success('Veterinário adicionado')
+      getVets()
 
       setName('')
       setCpf('')
@@ -50,7 +112,7 @@ export function VetModal({ closeModal }: VetModalProps) {
           </button>
 
           <p className="font-alt text-xl text-[#32B18B] font-bold">
-            Adicione um novo veterinário
+            {isEdit ? 'Editar veterinário' : 'Adicione um novo veterinário'}
           </p>
         </div>
 
@@ -111,10 +173,10 @@ export function VetModal({ closeModal }: VetModalProps) {
         </div>
 
         <button
-          onClick={handleAddNewVet}
+          onClick={isEdit ? handleEditResponsible : handleAddNewVet}
           className="w-full bg-green-600 rounded mt-2 h-12"
         >
-          CADASTRAR
+          {isEdit ? 'SALVAR' : 'CADASTRAR'}
         </button>
       </div>
     </div>

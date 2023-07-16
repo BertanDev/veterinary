@@ -8,6 +8,7 @@ import { VetCreate } from './routes/VetCreate'
 import { VaccineCreate } from './routes/VaccineCreate'
 import { AnimalCreate } from './routes/AnimalRoutes/AnimalCreate'
 import { Auth } from './routes/AuthRoutes/Auth'
+import { Info } from './routes/Info'
 
 export async function routes(app: FastifyInstance) {
   app.register(ClinicCreate)
@@ -19,4 +20,5 @@ export async function routes(app: FastifyInstance) {
   app.register(VetCreate)
   app.register(VaccineCreate)
   app.register(Auth)
+  app.register(Info)
 }

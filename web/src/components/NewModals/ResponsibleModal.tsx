@@ -1,5 +1,5 @@
 import { X, User } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import InputMask from 'react-input-mask'
 
 import { Input } from '../Input'
@@ -7,15 +7,76 @@ import { api } from '@/lib/axios'
 import { toast } from 'react-hot-toast'
 
 interface ResponsibleModalProps {
+  isEdit?: boolean
+  editId?: string
+
   closeModal: () => void
+  getResponsibles: () => void
 }
 
-export function ResponsibleModal({ closeModal }: ResponsibleModalProps) {
+export function ResponsibleModal({
+  closeModal,
+  getResponsibles,
+  editId,
+  isEdit,
+}: ResponsibleModalProps) {
   const [name, setName] = useState('')
   const [cpf, setCpf] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [birthDate, setBirthDate] = useState('')
+
+  useEffect(() => {
+    const fetchResponsible = async () => {
+      const response = await api.get('/responsible', {
+        params: {
+          editId,
+        },
+      })
+
+      console.log(response)
+      return response.data
+    }
+
+    if (isEdit) {
+      const getData = async () => {
+        const data = await fetchResponsible()
+
+        const date = new Date(data.responsible.birth_date)
+        const dia = date.getDate().toString().padStart(2, '0')
+        const mes = (date.getMonth() + 1).toString().padStart(2, '0')
+        const ano = date.getFullYear().toString()
+
+        const dataFormatada = `${dia}/${mes}/${ano}`
+
+        setName(data.responsible.name)
+        setBirthDate(dataFormatada)
+        setCpf(data.responsible.cpf)
+        setEmail(data.responsible.email)
+        setPhone(data.responsible.phone)
+      }
+
+      getData()
+    }
+  }, [editId, isEdit])
+
+  async function handleEditResponsible() {
+    try {
+      await api.put('/responsible', {
+        id: editId,
+        birthDate: birthDate.replace(/\//g, ''),
+        cpf,
+        email,
+        name,
+        phone: String(phone),
+      })
+
+      toast.success('Responsável editado')
+      getResponsibles()
+    } catch (error) {
+      toast.error('Erro no servidor')
+    }
+  }
 
   async function handleAddNewResponsible() {
     console.log({
@@ -35,6 +96,7 @@ export function ResponsibleModal({ closeModal }: ResponsibleModalProps) {
       })
 
       toast.success('Responsável criado')
+      getResponsibles()
     } catch (error) {
       toast.error('Erro no servidor')
     }
@@ -49,7 +111,7 @@ export function ResponsibleModal({ closeModal }: ResponsibleModalProps) {
           </button>
 
           <p className="font-alt text-xl text-[#32B18B] font-bold">
-            Cadaste um novo Responsável
+            {isEdit ? 'Editar responsável' : 'Cadaste um novo Responsável'}
           </p>
         </div>
 
@@ -111,7 +173,7 @@ export function ResponsibleModal({ closeModal }: ResponsibleModalProps) {
             />
 
             <button
-              onClick={handleAddNewResponsible}
+              onClick={isEdit ? handleEditResponsible : handleAddNewResponsible}
               className="w-full bg-green-600 rounded"
             >
               CADASTRAR

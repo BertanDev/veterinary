@@ -5,10 +5,19 @@ import { api } from '@/lib/axios'
 import { toast } from 'react-hot-toast'
 
 interface AnimalModalProps {
+  isEdit?: boolean
+  editId?: string
+
   closeModal: () => void
+  getAnimals: () => void
 }
 
-export function AnimalModal({ closeModal }: AnimalModalProps) {
+export function AnimalModal({
+  closeModal,
+  getAnimals,
+  editId,
+  isEdit,
+}: AnimalModalProps) {
   const [name, setName] = useState('')
   const [weight, setWeight] = useState(Number)
   const [height, setHeight] = useState(Number)
@@ -36,6 +45,8 @@ export function AnimalModal({ closeModal }: AnimalModalProps) {
     const getResponsibles = async () => {
       const fetchResponsibles = await api.get('/responsibles')
 
+      console.log(fetchResponsibles.data)
+
       setResponsibles(fetchResponsibles.data)
     }
 
@@ -43,6 +54,53 @@ export function AnimalModal({ closeModal }: AnimalModalProps) {
     getAnimalTypes()
     getBreeds()
   }, [])
+
+  useEffect(() => {
+    const fetchAnimal = async () => {
+      const response = await api.get('/animal', {
+        params: {
+          editId,
+        },
+      })
+
+      return response.data
+    }
+
+    if (isEdit) {
+      const getData = async () => {
+        const data = await fetchAnimal()
+        console.log(data)
+
+        setName(data.animal.name)
+        setWeight(data.animal.weight)
+        setHeight(data.animal.height)
+        setAnimalTypeId(data.animal.type.id)
+        setBreedId(data.animal.breed.id)
+        setResponsibleId(data.animal.responsible.id)
+      }
+
+      getData()
+    }
+  }, [editId, isEdit])
+
+  async function handleEditAnimal() {
+    try {
+      await api.put('/animal', {
+        id: editId,
+        weight,
+        height,
+        name,
+        breedId,
+        animalTypeId,
+        responsibleId,
+      })
+
+      toast.success('Animal editado')
+      getAnimals()
+    } catch (error) {
+      toast.error('Erro no servidor')
+    }
+  }
 
   async function handleAddNewAnimal() {
     try {
@@ -56,6 +114,7 @@ export function AnimalModal({ closeModal }: AnimalModalProps) {
       })
 
       toast.success('Animal cadastrado')
+      getAnimals()
     } catch (error) {
       toast.error('Erro ao cadastrar animal')
     }
@@ -70,7 +129,7 @@ export function AnimalModal({ closeModal }: AnimalModalProps) {
           </button>
 
           <p className="font-alt text-xl text-[#32B18B] font-bold">
-            Cadaste um novo Animal
+            {isEdit ? 'Editar animal' : 'Cadaste um novo Animal'}
           </p>
         </div>
 
@@ -86,21 +145,27 @@ export function AnimalModal({ closeModal }: AnimalModalProps) {
           </div>
 
           <div className="flex gap-2 w-[500px]">
-            <Input
-              icon={X}
-              onChange={(e) => setWeight(parseFloat(e.target.value))}
-              placeHolder="Peso"
-              type="number"
-              value={weight.toString()}
-            />
+            <div>
+              <p className="text-gray-600 ml-4">Peso</p>
+              <Input
+                icon={X}
+                onChange={(e) => setWeight(parseFloat(e.target.value))}
+                placeHolder="Peso"
+                type="number"
+                value={weight.toString()}
+              />
+            </div>
 
-            <Input
-              icon={X}
-              onChange={(e) => setHeight(parseFloat(e.target.value))}
-              placeHolder="Altura"
-              type="number"
-              value={height.toString()}
-            />
+            <div>
+              <p className="text-gray-600 ml-4">Altura</p>
+              <Input
+                icon={X}
+                onChange={(e) => setHeight(parseFloat(e.target.value))}
+                placeHolder="Altura"
+                type="number"
+                value={height.toString()}
+              />
+            </div>
           </div>
 
           <div className="flex gap-2">
@@ -111,7 +176,11 @@ export function AnimalModal({ closeModal }: AnimalModalProps) {
               <option value="">Selecione uma raça</option>
               {breeds.map((breed) => {
                 return (
-                  <option key={breed.id} value={breed.id}>
+                  <option
+                    selected={isEdit && breed.id === breedId}
+                    key={breed.id}
+                    value={breed.id}
+                  >
                     {breed.description}
                   </option>
                 )
@@ -125,7 +194,11 @@ export function AnimalModal({ closeModal }: AnimalModalProps) {
               <option value="">Selecione um tipo</option>
               {animalTypes.map((animalType) => {
                 return (
-                  <option key={animalType.id} value={animalType.id}>
+                  <option
+                    selected={isEdit && animalType.id === animalTypeId}
+                    key={animalType.id}
+                    value={animalType.id}
+                  >
                     {animalType.description}
                   </option>
                 )
@@ -138,10 +211,18 @@ export function AnimalModal({ closeModal }: AnimalModalProps) {
               className="block appearance-none w-full border-green-400 bg-white border text-gray-700 py-2 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
               onChange={(e) => setResponsibleId(e.target.value)}
             >
-              <option value="">Selecione um responsável</option>
+              {isEdit ? (
+                <option value={responsibleId}>{}</option>
+              ) : (
+                <option value="">Selecione um responsável</option>
+              )}
               {responsibles.map((responsible) => {
                 return (
-                  <option key={responsible.id} value={responsible.id}>
+                  <option
+                    selected={isEdit && responsible.id === responsibleId}
+                    key={responsible.id}
+                    value={responsible.id}
+                  >
                     {responsible.name} -{' '}
                     {responsible.cpf.replace(
                       /(\d{3})(\d{3})(\d{3})(\d{2})/,
@@ -154,10 +235,10 @@ export function AnimalModal({ closeModal }: AnimalModalProps) {
           </div>
 
           <button
-            onClick={handleAddNewAnimal}
+            onClick={isEdit ? handleEditAnimal : handleAddNewAnimal}
             className="w-full bg-green-600 rounded h-10"
           >
-            CADASTRAR
+            {isEdit ? 'SALVAR' : 'CADASTRAR'}
           </button>
         </div>
       </div>

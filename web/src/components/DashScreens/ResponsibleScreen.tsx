@@ -1,18 +1,52 @@
 'use client'
 
 import { PlusCircle } from 'lucide-react'
-import { InfoFrame } from '../InfoFrame'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ResponsibleModal } from '../NewModals/ResponsibleModal'
+import { api } from '@/lib/axios'
+import { ItemInfo } from '../ItemInfo'
+import { Infos } from '../Infos'
 
 export default function ResponsibleScreen() {
+  const [responsibles, setResponsibles] = useState([])
+
+  const [isEdit, setIsEdit] = useState(false)
+  const [editId, setEditId] = useState('')
+
   const [isModalOpen, setModalOpen] = useState(false)
+
+  async function onDelete(id: string) {
+    await api.delete('/responsible', {
+      params: {
+        editId: id,
+      },
+    })
+
+    getResponsibles()
+  }
+
   const handlePlusCircleClick = () => {
     setModalOpen(true)
   }
 
   const closeModal = () => {
     setModalOpen(false)
+  }
+
+  const getResponsibles = async () => {
+    const fetchResponsibles = await api.get('/responsibles')
+
+    setResponsibles(fetchResponsibles.data)
+  }
+
+  useEffect(() => {
+    getResponsibles()
+  }, [])
+
+  async function onEdit(id: string) {
+    setIsEdit(true)
+    setEditId(id)
+    setModalOpen(true)
   }
 
   return (
@@ -30,22 +64,29 @@ export default function ResponsibleScreen() {
 
       <div className="flex mt-8">
         <div className="flex flex-col gap-16">
-          <InfoFrame color="PRIMARY" quantity={47} text="Animais cadastrados" />
-          <InfoFrame
-            color="SECONDARY"
-            quantity={47}
-            text="Responsáveis cadastrados"
-          />
-          <InfoFrame
-            color="TERTIARY"
-            quantity={47}
-            text="Animais cadastrados"
-          />
+          <Infos />
         </div>
 
-        <div className=""></div>
+        <div className="flex flex-col w-100 items-center w-[800px] px-10 gap-3">
+          {responsibles.map((responsible) => (
+            <ItemInfo
+              key={responsible.id}
+              desc={responsible.name}
+              id={responsible.id}
+              onDelete={onDelete}
+              onEdit={onEdit}
+            />
+          ))}
+        </div>
       </div>
-      {isModalOpen && <ResponsibleModal closeModal={closeModal} />}
+      {isModalOpen && (
+        <ResponsibleModal
+          closeModal={closeModal}
+          isEdit={isEdit}
+          editId={editId}
+          getResponsibles={getResponsibles}
+        />
+      )}
     </div>
   )
 }

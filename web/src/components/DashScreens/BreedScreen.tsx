@@ -1,11 +1,11 @@
 'use client'
 
 import { PlusCircle } from 'lucide-react'
-import { InfoFrame } from '../InfoFrame'
 import { useEffect, useState } from 'react'
 import { BreedModal } from '../NewModals/BreedModal'
 import { api } from '@/lib/axios'
 import { ItemInfo } from '../ItemInfo'
+import { Infos } from '../Infos'
 
 export default function BreedScreen() {
   const [breeds, setBreeds] = useState([])
@@ -63,17 +63,7 @@ export default function BreedScreen() {
 
       <div className="flex mt-8">
         <div className="flex flex-col gap-16">
-          <InfoFrame color="PRIMARY" quantity={47} text="Animais cadastrados" />
-          <InfoFrame
-            color="SECONDARY"
-            quantity={47}
-            text="Responsáveis cadastrados"
-          />
-          <InfoFrame
-            color="TERTIARY"
-            quantity={47}
-            text="Animais cadastrados"
-          />
+          <Infos />
         </div>
 
         <div className="flex flex-col w-100 items-center w-[800px] px-10 gap-3">

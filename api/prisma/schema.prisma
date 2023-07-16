@@ -8,14 +8,15 @@ datasource db {
 }
 
 model Clinic {
-  id          String        @id @default(uuid())
-  nome        String
-  cnpj        BigInt
-  email       String        @unique
-  password    String
-  endereco    String
-  cidade      String
-  uf          String
+  id       String @id @default(uuid())
+  nome     String
+  cnpj     BigInt
+  email    String @unique
+  password String
+  endereco String
+  cidade   String
+  uf       String
+
   Breed       Breed[]
   Animal      Animal[]
   AnimalType  AnimalType[]

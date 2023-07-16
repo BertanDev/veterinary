@@ -7,7 +7,7 @@ interface InfoFrameProps {
 export function InfoFrame({ color, quantity, text }: InfoFrameProps) {
   return (
     <div
-      className={`p-2 rounded-lg bg-white flex items-center flex-col justify-center border w-48 ${
+      className={`p-2 rounded-lg bg-white flex items-center flex-col justify-center border w-64 ${
         color === 'PRIMARY'
           ? 'bg-green-700'
           : color === 'SECONDARY'

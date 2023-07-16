@@ -27,7 +27,9 @@ export default function Home() {
         password,
       })
 
-      Cookie.set('auth_token', response.data.token)
+      Cookie.set('auth_token', response.data.token, {
+        expires: 60 * 60 * 24 * 30,
+      })
       router.push('/dashboard')
       api.defaults.headers.common.Authorization = `Bearer ${response.data.token}`
     } catch (error) {
